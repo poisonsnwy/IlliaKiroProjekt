@@ -35,6 +35,7 @@ void ensure_file_exists(const char *filename)
     fclose(f);
 }
 
+
 SingleDate getTodaysDate() {
 
     time_t now = time(NULL);
@@ -69,6 +70,25 @@ Task readLineToTask(char *line)
 
     return t;
 }
+
+int days_between(SingleDate start, SingleDate cur)
+{
+    struct tm ts = {0}, tc = {0};
+
+    ts.tm_mday = start.day;
+    ts.tm_mon  = start.month - 1;
+    ts.tm_year = start.year - 1900;
+
+    tc.tm_mday = cur.day;
+    tc.tm_mon  = cur.month - 1;
+    tc.tm_year = cur.year - 1900;
+
+    time_t t1 = mktime(&ts);
+    time_t t2 = mktime(&tc);
+
+    return (int)((t2 - t1) / 86400);
+}
+
 void mainMenu()
 {
     today = getTodaysDate();
@@ -204,7 +224,7 @@ void mainMenu()
                         if (t.name[0] == '\0')
                             continue;
 
-                        printf("%02d.%02d.%04d | %s | dur=%d done=%d prio=%d\n",
+                        printf("%02d.%02d.%04d - %s \n",
                                t.day, t.month, t.year,
                                t.name, t.duration, t.done, t.priority);
                     }
@@ -252,8 +272,6 @@ void delete_from_archive(int d, int m, int y, const char* text)
 }
 
 
-
-
 void showToDolist(SingleDate date)
 {
     FILE *file = fopen("archive.txt", "r");
@@ -264,32 +282,40 @@ void showToDolist(SingleDate date)
 
     printf("Today I am going to...\n");
     char line[512];
+
     while (fgets(line, sizeof(line), file))
     {
-        line[strcspn(line, "\n")] = 0; // убрать \n
+        line[strcspn(line, "\n")] = 0;
+
         Task task = readLineToTask(line);
-        if (task.day == date.day && task.month == date.month && task.year == date.year)
+
+        SingleDate taskDate = {task.day, task.month, task.year};
+        int diff = days_between(taskDate, date);
+        if (diff >= 0 && diff < task.duration)
         {
-            if (task.done !=1) {
-            switch(task.priority)
-            {
-            case 1:
-                printf(RED "|   | - %s \n" RESET, task.name, task.done);
-                break;
-            case 2:
-                printf(YEL "|   | - %s \n" RESET, task.name, task.done);
-                break;
-            case 3:
-                printf(CYN "|   | - %s \n" RESET, task.name, task.done);
-                break;
-            default:
-                printf("|   | - %s \n", task.name, task.done);
-            } } else
-            {
-                printf("| + | - %s \n", task.name, task.done);
+            if (task.done != 1) {
+
+                switch(task.priority)
+                {
+                case 1:
+                    printf(RED "|   | - %s\n" RESET, task.name);
+                    break;
+                case 2:
+                    printf(YEL "|   | - %s\n" RESET, task.name);
+                    break;
+                case 3:
+                    printf(CYN "|   | - %s\n" RESET, task.name);
+                    break;
+                default:
+                    printf("|   | - %s\n", task.name);
+                }
+
+            } else {
+                printf("| + | - %s\n", task.name);
             }
         }
     }
+
     fclose(file);
 }
     void toDolist()
@@ -322,6 +348,9 @@ void showToDolist(SingleDate date)
                 printf("If this event is just for fun, write down 3\n");
                 printf("Otherwise write any other number\n");
                 scanf("%d", &t.priority);
+
+                printf("How many days are you going to do that?\n");
+                scanf("%d", &t.duration);
 
 
 
