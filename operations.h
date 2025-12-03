@@ -33,4 +33,4 @@ struct SingleDate {
 
     void writeTaskToLine(Task task);
 
-
+void ensure_file_exists(const char *filename);

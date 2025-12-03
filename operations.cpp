@@ -19,6 +19,22 @@ Task tasks[24];
 
 char line[512];
 
+void ensure_file_exists(const char *filename)
+{
+    FILE *f = fopen(filename, "r");
+    if (f) {
+        fclose(f);
+        return;
+    }
+
+    f = fopen(filename, "w");
+    if (!f) {
+        printf("Cannot create file: %s\n", filename);
+        return;
+    }
+    fclose(f);
+}
+
 SingleDate getTodaysDate() {
 
     time_t now = time(NULL);
@@ -59,7 +75,7 @@ void mainMenu()
 
     while (true)
     {
-        printf("1 - edit todo list | 2 - go tomorrow | 3 - go yesterday | 4 - go to the date | 5 - mark as completed | 6 - show all todo list\n");
+        printf("1 - edit todo list | 2 - go tomorrow | 3 - go yesterday | 4 - go to the date | 5 - mark as completed | 6 - show all\n");
         showToDolist(today);
 
         int choice;
